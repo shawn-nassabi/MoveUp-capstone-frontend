@@ -40,6 +40,7 @@ struct ActivityOverviewView: View {
                 fetchData()
             }
         }
+        .padding(.bottom)
         
     }
     
