@@ -261,13 +261,12 @@ struct BenchmarksView: View {
     }
         
     
-    // Fetch user's benchmarks
     func fetchBenchmarks() {
         guard let userId = appState.userId else {
             print("User ID is nil, cannot upload health data.")
             return
         }
-        
+
         guard let url = URL(string: "http://10.228.227.249:5085/api/demographicbenchmark/\(userId)") else {
             print("Invalid URL")
             return
@@ -290,7 +289,18 @@ struct BenchmarksView: View {
             }
 
             do {
-                let benchmarks = try JSONDecoder().decode([Benchmark].self, from: data)
+                var benchmarks = try JSONDecoder().decode([Benchmark].self, from: data)
+                
+                // Sort benchmarks by createdAt date in descending order (newest first)
+                let isoFormatter = ISO8601DateFormatter()
+                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                
+                benchmarks.sort {
+                    let date1 = isoFormatter.date(from: $0.createdAt) ?? Date.distantPast
+                    let date2 = isoFormatter.date(from: $1.createdAt) ?? Date.distantPast
+                    return date1 > date2
+                }
+
                 DispatchQueue.main.async {
                     self.benchmarks = benchmarks
                     print("Benchmarks fetched successfully")
