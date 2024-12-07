@@ -12,5 +12,6 @@ struct Clan: Identifiable, Codable {
     let name: String
     let description: String
     let location: String
+    let challengePoints: Float
     let members: [ClanMember]
 }

@@ -135,16 +135,16 @@ struct BenchmarksView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        NavigationLink(destination: BenchmarkDetailView(benchmark: exampleBenchmark)) {
-                            BenchmarkCardView(
-                                date: formattedDate(from: exampleBenchmark.createdAt),
-                                title: dataTypeName(for: exampleBenchmark.dataTypeId),
-                                value: String(format: "%.0f", exampleBenchmark.userDataValue),
-                                icon: iconName(for: exampleBenchmark.dataTypeId),
-                                color: color(for: exampleBenchmark.dataTypeId)
-                            )
-                            .buttonStyle(PlainButtonStyle())
-                        }
+//                        NavigationLink(destination: BenchmarkDetailView(benchmark: exampleBenchmark)) {
+//                            BenchmarkCardView(
+//                                date: formattedDate(from: exampleBenchmark.createdAt),
+//                                title: dataTypeName(for: exampleBenchmark.dataTypeId),
+//                                value: String(format: "%.0f", exampleBenchmark.userDataValue),
+//                                icon: iconName(for: exampleBenchmark.dataTypeId),
+//                                color: color(for: exampleBenchmark.dataTypeId)
+//                            )
+//                            .buttonStyle(PlainButtonStyle())
+//                        }
                         
                         // Dynamic Benchmarks
                         ForEach(benchmarks) { benchmark in
@@ -160,6 +160,7 @@ struct BenchmarksView: View {
                         }
                     }
                     .padding(.top)
+                    .padding(.horizontal, 10)
                     .onChange(of: shouldRefresh, { oldValue, newValue in
                         if newValue {
                             fetchBenchmarks()
@@ -423,3 +424,8 @@ struct BenchmarkCardView: View {
     }
 }
 
+
+#Preview {
+    BenchmarksView()
+        .environmentObject(AppState())
+}

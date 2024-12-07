@@ -12,19 +12,25 @@ class AppState: ObservableObject {
     @Published var userId: String? = "6dfa161b-9a4f-4857-b82a-2125e99e8331"
     @Published var userData: [String: Any]? = nil
     @Published var healthDataTypes: [[String: Any]]? = nil
+    
+    @Published var isLoadingClanDetails: Bool = false
     @Published var clanMemberDetails: ClanMember?
     @Published var clanDetails: Clan?
     
     func refreshClanDetails() {
         print("Fetching clan details")
+        
+        isLoadingClanDetails = true
 
-        guard let userId = userId, !userId.isEmpty else {
-            print("User ID not set")
+        guard let userId = userId else {
+            print("User ID is nil. Failed to refresh clan member details")
+            isLoadingClanDetails = false
             return
         }
 
         guard let url = URL(string: "http://10.228.227.249:5085/api/clan/member/\(userId)") else {
             print("Invalid URL")
+            isLoadingClanDetails = false
             return
         }
 
@@ -32,52 +38,58 @@ class AppState: ObservableObject {
         request.httpMethod = "GET"
 
         URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            
             if let error = error {
                 print("Error fetching clan details: \(error.localizedDescription)")
+                self.isLoadingClanDetails = false
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("Invalid response")
+                self.isLoadingClanDetails = false
                 return
             }
 
             if httpResponse.statusCode == 404 {
                 DispatchQueue.main.async {
+                    self.clanMemberDetails = nil
+                    self.clanDetails = nil
                     print("User is not in a clan")
                     self.clanMemberDetails = nil
+                    self.isLoadingClanDetails = false
                 }
                 return
             }
 
             guard (200...299).contains(httpResponse.statusCode) else {
                 print("Unexpected status code: \(httpResponse.statusCode)")
+                self.isLoadingClanDetails = false
                 return
             }
 
-            guard let data = data, !data.isEmpty else {
-                print("No data received from server")
-                return
-            }
 
-            do {
-                let clanMemberDetails = try JSONDecoder().decode(ClanMember.self, from: data)
-                // print("Raw data: \(String(data: data, encoding: .utf8) ?? "Unable to print data")")
-                DispatchQueue.main.async {
-                    self.clanMemberDetails = clanMemberDetails
-                    print("Fetched clan membership details: \(clanMemberDetails)")
-
-                    // Fetch full clan details using the clanId
-                    self.fetchClanDetails(for: clanMemberDetails.clanId)
+            if let data = data {
+                do {
+                    let clanMemberDetails = try JSONDecoder().decode(ClanMember.self, from: data)
+                    DispatchQueue.main.async {
+                        self.clanMemberDetails = clanMemberDetails
+                        self.fetchClanDetails(for: clanMemberDetails.clanId)
+                    }
+                } catch {
+                    print("Error decoding clan member details: \(error.localizedDescription)")
+                    self.isLoadingClanDetails = false
                 }
-            } catch {
-                print("Error decoding clan membership details: \(error.localizedDescription)")
             }
         }.resume()
     }
     
     func fetchClanDetails(for clanId: String) {
         print("Fetching details for clan ID: \(clanId)")
+        DispatchQueue.main.async {
+            self.isLoadingClanDetails = false
+        }
 
         guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)") else {
             print("Invalid URL")
