@@ -33,25 +33,6 @@ struct ClanView: View {
         Member(id: "3", userName: "Jackie_Chan", role: "MEMBER"),
         Member(id: "4", userName: "Emily_Rose", role: "MEMBER")
     ]
-
-//    var body: some View {
-//        Group {
-//            if isLoading {
-//                ProgressView("Loading...")
-//                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-//            } else if isInClan == true, let clanMemberDetails = clanMemberDetails {
-//                clanViewContent(for: clanMemberDetails)
-//            } else {
-//                noClanView()
-//            }
-//        }
-//        .onAppear {
-//            if isInClan == nil { // Avoid refetching if state already determined
-//                fetchClanDetails()
-//            }
-//        }
-//        
-//    }
     
     var body: some View {
         Group {

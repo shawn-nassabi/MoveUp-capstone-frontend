@@ -35,7 +35,10 @@ struct ClanCardView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
                 }
-                .padding(.horizontal, 5)
+                .padding(5)
+                .background(Color(.white))
+                .cornerRadius(8)
+                .shadow(color: Color.yellow, radius: 2, x: 0, y: 0)
             }
         }
         .padding()

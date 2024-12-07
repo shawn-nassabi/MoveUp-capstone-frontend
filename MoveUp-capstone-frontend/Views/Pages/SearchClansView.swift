@@ -7,10 +7,17 @@
 
 import SwiftUI
 
+class SheetManager: ObservableObject {
+    @Published var showSheet = false // Controls sheet visibility
+    @Published var selectedClan: Clan? = nil // Holds the selected clan
+}
+
 struct SearchClansView: View {
     @State private var clans: [ClanSearchModel] = [] // Holds the list of clans from the backend
     @State private var searchText: String = "" // Text entered in the search bar
     @State private var isLoading: Bool = true // Indicates if data is being fetched
+    
+    @StateObject private var sheetManager = SheetManager() // Manages sheet state and selected clan
 
     var body: some View {
         VStack(spacing: 0) {
@@ -50,7 +57,12 @@ struct SearchClansView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         ForEach(filteredClans, id: \.id) { clan in
-                            ClanCardView(clan: clan)
+                            Button(action: {
+                                fetchClanDetails(clanId: clan.id)
+                            }) {
+                                ClanCardView(clan: clan)
+                            }
+                            .buttonStyle(PlainButtonStyle()) // Prevents default button styling
                         }
                     }
                     .padding(.horizontal, 5)
@@ -64,6 +76,11 @@ struct SearchClansView: View {
         .onAppear {
             fetchClans()
         }
+        .sheet(isPresented: $sheetManager.showSheet) {
+            if let clan = sheetManager.selectedClan {
+                ClanDetailsView(clan: clan, showClanDetails: $sheetManager.showSheet)
+            }
+        }
     }
 
     // Filtered list of clans based on search text
@@ -73,6 +90,30 @@ struct SearchClansView: View {
         } else {
             return clans.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
         }
+    }
+    
+    func fetchClanDetails(clanId: String) {
+        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Error fetching clan details: \(error.localizedDescription)")
+                return
+            }
+
+            if let data = data {
+                do {
+                    let detailedClan = try JSONDecoder().decode(Clan.self, from: data)
+                    DispatchQueue.main.async {
+                        self.sheetManager.selectedClan = detailedClan
+                        self.sheetManager.showSheet = true
+                        print("Retrieved clan details: \(detailedClan.name)")
+                    }
+                } catch {
+                    print("Error decoding clan details: \(error.localizedDescription)")
+                }
+            }
+        }.resume()
     }
 
     // Fetch clans from backend

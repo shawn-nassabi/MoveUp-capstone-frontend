@@ -20,7 +20,7 @@ struct BarChartView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            HStack(alignment: .bottom, spacing: 25) {
+            HStack(alignment: .bottom, spacing: 15) {
                 // Bar for "You"
                 BarView(
                     value: userValue,
@@ -40,7 +40,7 @@ struct BarChartView: View {
                 // Bar for "Goal"
                 BarView(
                     value: recommendedValue,
-                    label: "Target",
+                    label: "Recommended",
                     color: .green,
                     height: CGFloat(height * (recommendedValue / upperBound))
                 )
@@ -64,16 +64,25 @@ struct BarView: View {
                 .font(.footnote)
                 .fontWeight(.bold)
                 .foregroundColor(.black)
-
-            // Rectangle for the bar, with dynamic height
-            Rectangle()
-                .fill(color)
-                .frame(width: 70, height: height)
+            
+            ZStack(alignment: .bottom) {
+                // Rectangle for the bar, with dynamic height
+                Rectangle()
+                    .fill(color)
+                    .frame(width: 100, height: height)
+                    .cornerRadius(10)
+                
+                Rectangle()
+                    .fill(color)
+                    .frame(width: 100, height: height/2)
+            }
+            
 
             // Display the label below the bar
             Text(label)
-                .font(.caption)
-                .foregroundColor(.gray)
+                .font(.system(size: 12))
+                .foregroundColor(color)
+                .fontWeight(.bold)
                 .frame(height: 20)
         }
     }
