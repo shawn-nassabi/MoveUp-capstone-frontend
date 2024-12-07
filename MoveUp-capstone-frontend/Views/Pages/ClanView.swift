@@ -15,6 +15,12 @@ struct Member: Identifiable {
 }
 
 struct ClanView: View {
+    @EnvironmentObject var appState: AppState
+    
+    @State private var isLoading: Bool = true
+    @State private var isInClan: Bool? = nil // nil means the API is still loading
+    @State private var clanMemberDetails: ClanMember? = nil // Holds user's clan details if they are in a clan
+    
     // Sample data for members
     @State private var members: [Member] = [
         Member(id: "1", userName: "John_Doe", role: "LEADER"),
@@ -24,6 +30,102 @@ struct ClanView: View {
     ]
 
     var body: some View {
+        Group {
+            if isLoading {
+                ProgressView("Loading...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else if isInClan == true, let clanMemberDetails = clanMemberDetails {
+                clanViewContent(for: clanMemberDetails)
+            } else {
+                noClanView()
+            }
+        }
+        .onAppear {
+            if isInClan == nil { // Avoid refetching if state already determined
+                fetchClanDetails()
+            }
+        }
+        
+    }
+    
+    func fetchClanDetails() {
+        guard let userId = appState.userId else {
+            print("User ID is nil")
+            self.isLoading = false
+            return
+        }
+
+        let url = URL(string: "http://10.228.227.249:5085/api/clan/member/\(userId)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoading = false // Ensure loading state is reset
+            }
+
+            if let error = error {
+                print("Error fetching clan details: \(error.localizedDescription)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 404 {
+                DispatchQueue.main.async {
+                    self.isInClan = false
+                    print("User is not in a clan")
+                }
+                return
+            }
+
+            if let data = data {
+                do {
+                    print("Raw data: \(String(data: data, encoding: .utf8) ?? "Unable to print data")")
+                    let clanMemberDetails = try JSONDecoder().decode(ClanMember.self, from: data)
+                    DispatchQueue.main.async {
+                        self.clanMemberDetails = clanMemberDetails
+                        self.isInClan = true
+                    }
+                } catch {
+                    print("Error decoding clan details: \(error.localizedDescription)")
+                }
+            }
+        }.resume()
+    }
+    
+    func noClanView() -> some View {
+        NavigationView {
+            VStack(spacing: 16) {
+                Text("You are not part of a clan yet.")
+                    .font(.headline)
+                    .foregroundColor(.gray)
+
+                NavigationLink(destination: CreateClanView()) {
+                    Text("Create a Clan")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .foregroundColor(.white)
+                        .background(Color.teal)
+                        .cornerRadius(8)
+                }
+
+                NavigationLink(destination: SearchClansView()) {
+                    Text("Search for Clans")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .foregroundColor(.white)
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                }
+                
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        
+    }
+    
+    
+    func clanViewContent(for details: ClanMember) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 // Header
@@ -50,7 +152,7 @@ struct ClanView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top)
-
+                
                 // Challenge Points
                 HStack {
                     Text("Challenge Points")
@@ -72,8 +174,6 @@ struct ClanView: View {
                     .shadow(color: Color.yellow, radius: 2, x: 0, y: 0)
                 }
                 .padding(.horizontal)
-
-                
                 
                 
                 // Current Challenge Section
@@ -81,80 +181,15 @@ struct ClanView: View {
                     Text("In Progress")
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
-
+                    
                     VStack(alignment: .leading, spacing: 16) {
-            
                         // Challenge card
-                        VStack {
-                            Text("GOAL: 100,000")
-                                .font(.system(size: 10))
-                                .foregroundColor(.green)
-                                .fontWeight(.bold)
-                                .frame(maxWidth: .infinity, alignment: .trailing)
-                                .padding(.bottom, 2)
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text("Steps\nChallenge")
-                                        .font(.system(size: 24))
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                        .padding(.bottom)
-                                }
-                                
-                                Spacer()
-                                
-                                
-                                // Circular Progress Bar
-                                HStack{
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("25,000")
-                                            .font(.system(size: 10))
-                                            .foregroundColor(.gray)
-                                        Text("needed")
-                                            .font(.system(size: 10))
-                                            .foregroundColor(.gray)
-                                    }
-                                    .padding(.horizontal)
-   
-                                    ZStack {
-                                        // Background Circle
-                                        Circle()
-                                            .stroke(
-                                                Color.gray.opacity(0.2),
-                                                lineWidth: 10
-                                            )
-                                            .frame(width: 70, height: 70)
-                                        
-                                        // Foreground Circle showing progress
-                                        Circle()
-                                            .trim(from: 0.0, to: 0.75) // 75% progress
-                                            .stroke(
-                                                Color.green,
-                                                style: StrokeStyle(lineWidth: 10, lineCap: .round)
-                                            )
-                                            .rotationEffect(.degrees(-90)) // Start at the top
-                                            .frame(width: 70, height: 70)
-                                        
-                                        // Percentage Label
-                                        Text("75%")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.green)
-                                    }
-
-                                }
-                                .padding(.bottom)
-                                
-                            }
-                            
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.white))
-                        .cornerRadius(8)
-                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 0)
-                        
-
+                        ChallengeCardView(
+                            goal: "100,000",
+                            title: "Steps\nChallenge",
+                            progress: 0.75, // 75% progress
+                            needed: "25,000"
+                        )
                         // View More Challenges button
                         Button(action: {
                             // Navigate to more challenges
@@ -173,7 +208,7 @@ struct ClanView: View {
                                 )
                                 .cornerRadius(8)
                         }
-
+                        
                         // Leave button
                         Button(action: {
                             // Leave clan action
@@ -196,31 +231,31 @@ struct ClanView: View {
                         .font(.headline)
                         .foregroundColor(.gray)
                         .padding(.horizontal)
-                        ForEach(members) { member in
-                            HStack {
-                                // Placeholder for user icon
-                                Circle()
-                                    .fill(Color(.systemGray4))
-                                    .frame(width: 40, height: 40)
-                                    .overlay(
-                                        Image(systemName: "person.fill")
-                                            .font(.title3)
-                                            .foregroundColor(.white)
-                                    )
-
-                                VStack(alignment: .leading) {
-                                    Text(member.userName)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                    Text(member.role.capitalized)
-                                        .font(.footnote)
-                                        .foregroundColor(.gray)
-                                }
-                                Spacer()
+                    ForEach(members) { member in
+                        HStack {
+                            // Placeholder for user icon
+                            Circle()
+                                .fill(Color(.systemGray4))
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.title3)
+                                        .foregroundColor(.white)
+                                )
+                            
+                            VStack(alignment: .leading) {
+                                Text(member.userName)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text(member.role.capitalized)
+                                    .font(.footnote)
+                                    .foregroundColor(.gray)
                             }
-                            .padding(.horizontal)
-                            .padding(.vertical, 8)
+                            Spacer()
                         }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                    }
                     
                     
                 }
@@ -228,6 +263,11 @@ struct ClanView: View {
             }
             .padding(.vertical)
         }
-        
     }
+}
+
+
+#Preview {
+    ClanView()
+        .environmentObject(AppState())
 }
