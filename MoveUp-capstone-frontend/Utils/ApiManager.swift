@@ -13,6 +13,7 @@ struct HealthDataPayload: Codable {
     let datatypeId: Int
     let dataValue: Double
     let recordedAt: String
+    let timeZoneOffset: Int
 }
 
 class ApiManager {

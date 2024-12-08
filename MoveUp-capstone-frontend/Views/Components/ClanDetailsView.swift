@@ -68,16 +68,27 @@ struct ClanDetailsView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(clan.members, id: \.memberId) { member in
                         HStack {
-                            Text(member.userName)
-                                .font(.system(size: 16))
-                                .fontWeight(.bold)
+                            // Placeholder for user icon
+                            Circle()
+                                .fill(Color(.systemGray4))
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.title3)
+                                        .foregroundColor(.white)
+                                )
+                            
+                            VStack(alignment: .leading) {
+                                Text(member.userName)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text(member.role.capitalized)
+                                    .font(.footnote)
+                                    .foregroundColor(.gray)
+                            }
                             Spacer()
-                            Text(member.role.capitalized)
-                                .foregroundColor(.gray)
                         }
-                        .padding(10)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
+                        .padding(.vertical, 8)
                     }
                 }
             }

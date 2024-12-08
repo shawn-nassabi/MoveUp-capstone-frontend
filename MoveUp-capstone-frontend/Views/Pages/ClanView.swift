@@ -7,6 +7,93 @@
 
 import SwiftUI
 
+class ClanInviteSheetManager: ObservableObject {
+    @Published var showSheet: Bool = false // Controls the sheet visibility
+    @Published var joinRequests: [JoinRequest] = [] // Stores the join requests
+    @Published var isLoading: Bool = false // Tracks loading state for join requests
+
+    func fetchJoinRequests(for clanId: String) {
+        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)/invites") else {
+            print("Invalid URL")
+            return
+        }
+
+        isLoading = true
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
+
+            if let error = error {
+                print("Error fetching join requests: \(error.localizedDescription)")
+                return
+            }
+
+            if let data = data {
+                do {
+                    let requests = try JSONDecoder().decode([JoinRequest].self, from: data)
+                    DispatchQueue.main.async {
+                        self.joinRequests = requests
+                        self.showSheet = true // Show the sheet
+                    }
+                } catch {
+                    print("Error decoding join requests: \(error.localizedDescription)")
+                }
+            }
+        }.resume()
+    }
+    
+    func acceptRequest(requestId: String) {
+        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/invite/accept/\(requestId)") else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error accepting request: \(error.localizedDescription)")
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    // Remove the request from the list
+                    self.joinRequests.removeAll { $0.id == requestId }
+                } else {
+                    print("Failed to accept request. Unexpected response.")
+                }
+            }
+        }.resume()
+    }
+
+    func declineRequest(requestId: String) {
+        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/invite/decline/\(requestId)") else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error declining request: \(error.localizedDescription)")
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    // Remove the request from the list
+                    self.joinRequests.removeAll { $0.id == requestId }
+                } else {
+                    print("Failed to decline request. Unexpected response.")
+                }
+            }
+        }.resume()
+    }
+}
+
 // Member data structure
 struct Member: Identifiable {
     let id: String
@@ -25,6 +112,12 @@ struct ClanView: View {
     @State private var showLeaveAlert: Bool = false // State for showing the confirmation alert
     
     @State private var navigateToChallenges: Bool = false
+    
+//    @State private var showJoinRequestsSheet: Bool = false // Controls the sheet visibility
+//    @State private var joinRequests: [JoinRequest] = [] // Stores the join requests
+//    @State private var isLoadingJoinRequests: Bool = false // Tracks loading state for join requests
+    
+    @StateObject private var sheetManager = ClanInviteSheetManager() // Manage sheet state
     
     // Sample data for members
     @State private var members: [Member] = [
@@ -55,6 +148,87 @@ struct ClanView: View {
                 appState.refreshClanDetails()
                 hasLoadedOnce = true
             }
+        }
+        .sheet(isPresented: $sheetManager.showSheet) {
+                VStack {
+                    if sheetManager.isLoading {
+                        ProgressView("Loading join requests...")
+                            .padding(.top, 20)
+                    } else if sheetManager.joinRequests.isEmpty {
+                        Text("No join requests received.")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                            .padding()
+                            .padding(.top, 20)
+                    } else {
+                        Text("Clan Join Requests")
+                            .font(.system(size: 24, weight: .heavy))
+                            .padding(.top)
+                        ScrollView {
+                            VStack(spacing: 16) { // Adds spacing between requests
+                                ForEach(sheetManager.joinRequests) { request in
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(request.userName)
+                                                    .font(.headline)
+                                                Text("Requested to join \(request.clanName)")
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.gray)
+                                                Text("Requested at: \(formattedDate(from: request.createdAt))")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            Spacer()
+                                            VStack(spacing: 8) {
+                                                Button(action: {
+                                                    sheetManager.acceptRequest(requestId: request.id)
+                                                }) {
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                        .font(.system(size: 30))
+                                                        .foregroundColor(.green)
+                                                }
+
+                                                Button(action: {
+                                                    sheetManager.declineRequest(requestId: request.id)
+                                                }) {
+                                                    Image(systemName: "xmark.circle.fill")
+                                                        .font(.system(size: 30))
+                                                        .foregroundColor(.red)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                    .background(Color.white) // Set request cards with white background
+                                    .cornerRadius(8)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2) // Subtle shadow
+                                }
+                            }
+                            .padding()
+                        }
+                        
+                    }
+
+                    Spacer(minLength: 20)
+
+                    // Close button
+                    Button(action: {
+                        sheetManager.showSheet = false
+                    }) {
+                        Text("Close")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .foregroundColor(.white)
+                            .background(Color.red)
+                            .cornerRadius(8)
+                    }
+                    .padding(.top, 20)
+                    .padding(.horizontal)
+                }
+                .padding()
+                .background(Color(.systemBackground)) // Set the sheet's background to white
+                .navigationTitle("Join Requests")
         }
     }
     
@@ -248,9 +422,25 @@ struct ClanView: View {
                     // Members Section
                     if let clanDetails = appState.clanDetails {
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Members")
-                                .font(.headline)
-                                .foregroundColor(.gray)
+                            HStack {
+                                Text("Members")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                
+                                if let clanMemberDetails = appState.clanMemberDetails, clanMemberDetails.role.lowercased() == "leader" {
+                                    Image(systemName: "bell")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.blue)
+                                        .padding()
+                                        .background(Color.gray.opacity(0.1))
+                                        .clipShape(Circle())
+                                        .onTapGesture {
+                                            sheetManager.fetchJoinRequests(for: clanMemberDetails.clanId)
+                                        }
+                                }
+                            }
+                            
                             ForEach(clanDetails.members, id: \.id) { member in
                                 HStack {
                                     // Placeholder for user icon
@@ -288,7 +478,11 @@ struct ClanView: View {
                 .padding(.horizontal)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .refreshable {
+                appState.refreshClanDetails()
+            }
         }
+        
     }
     
     // Function to handle leaving the clan
@@ -320,6 +514,20 @@ struct ClanView: View {
                 print("Failed to leave clan: Unexpected status code")
             }
         }.resume()
+    }
+    
+    func formattedDate(from isoDate: String) -> String {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .medium
+        displayFormatter.timeStyle = .short
+
+        if let date = isoFormatter.date(from: isoDate) {
+            return displayFormatter.string(from: date)
+        }
+        return "Unknown Date"
     }
 }
 

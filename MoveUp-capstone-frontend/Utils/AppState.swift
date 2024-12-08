@@ -223,11 +223,12 @@ class AppState: ObservableObject {
 
             let healthKit = HealthKitManager.shared
             let currentTime = ISO8601DateFormatter().string(from: Date())
-
+            let timeZoneOffset = TimeZone.current.secondsFromGMT() / 60 // Offset in minutes
+            print("Adding health data for time: \(currentTime)")
             // Fetch and upload steps
             healthKit.fetchStepCount { steps, error in
                 guard let steps = steps else { return }
-                let payload = HealthDataPayload(userId: userId, datatypeId: 1, dataValue: steps, recordedAt: currentTime)
+                let payload = HealthDataPayload(userId: userId, datatypeId: 1, dataValue: steps, recordedAt: currentTime, timeZoneOffset: timeZoneOffset)
                 ApiManager.shared.uploadHealthData(payload: payload) { success, error in
                     if success {
                         print("Steps uploaded successfully.")
@@ -243,7 +244,7 @@ class AppState: ObservableObject {
                     print("calories is nil, cannot upload calories.")
                     return
                 }
-                let payload = HealthDataPayload(userId: userId, datatypeId: 2, dataValue: calories, recordedAt: currentTime)
+                let payload = HealthDataPayload(userId: userId, datatypeId: 2, dataValue: calories, recordedAt: currentTime, timeZoneOffset: timeZoneOffset)
                 ApiManager.shared.uploadHealthData(payload: payload) { success, error in
                     if success {
                         print("Calories uploaded successfully.")
@@ -256,7 +257,7 @@ class AppState: ObservableObject {
             // Fetch and upload resting heart rate
             healthKit.fetchRestingHeartRate { heartRate, error in
                 guard let heartRate = heartRate else { return }
-                let payload = HealthDataPayload(userId: userId, datatypeId: 3, dataValue: heartRate, recordedAt: currentTime)
+                let payload = HealthDataPayload(userId: userId, datatypeId: 3, dataValue: heartRate, recordedAt: currentTime, timeZoneOffset: timeZoneOffset)
                 ApiManager.shared.uploadHealthData(payload: payload) { success, error in
                     if success {
                         print("Resting heart rate uploaded successfully.")
@@ -269,7 +270,7 @@ class AppState: ObservableObject {
             // Fetch and upload sleep
             healthKit.fetchSleepData { sleepHours, error in
                 guard let sleepHours = sleepHours else { return }
-                let payload = HealthDataPayload(userId: userId, datatypeId: 4, dataValue: sleepHours, recordedAt: currentTime)
+                let payload = HealthDataPayload(userId: userId, datatypeId: 4, dataValue: sleepHours, recordedAt: currentTime, timeZoneOffset: timeZoneOffset)
                 ApiManager.shared.uploadHealthData(payload: payload) { success, error in
                     if success {
                         print("Sleep data uploaded successfully.")
@@ -287,7 +288,7 @@ class AppState: ObservableObject {
                     print("No exercise minutes found. Cannot upload.")
                     return
                 }
-                let payload = HealthDataPayload(userId: userId, datatypeId: 5, dataValue: exerciseMinutes, recordedAt: currentTime)
+                let payload = HealthDataPayload(userId: userId, datatypeId: 5, dataValue: exerciseMinutes, recordedAt: currentTime, timeZoneOffset: timeZoneOffset)
                 ApiManager.shared.uploadHealthData(payload: payload) { success, error in
                     if success {
                         print("Exercise minutes uploaded successfully.")
@@ -300,7 +301,7 @@ class AppState: ObservableObject {
             // Fetch and upload distance
             healthKit.fetchTotalDistance { distance, error in
                 guard let distance = distance else { return }
-                let payload = HealthDataPayload(userId: userId, datatypeId: 6, dataValue: distance, recordedAt: currentTime)
+                let payload = HealthDataPayload(userId: userId, datatypeId: 6, dataValue: distance, recordedAt: currentTime, timeZoneOffset: timeZoneOffset)
                 ApiManager.shared.uploadHealthData(payload: payload) { success, error in
                     if success {
                         print("Distance uploaded successfully.")
