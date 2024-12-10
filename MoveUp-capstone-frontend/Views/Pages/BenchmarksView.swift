@@ -42,138 +42,128 @@ struct BenchmarksView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                HeaderView() // Add your header view here
+            ScrollView {
+                VStack {
+                    HeaderView() // Add your header view here
 
-                // Start a New Benchmark Section
-                VStack(alignment: .leading, spacing: 0) {
-                    Button(action: {
-                        withAnimation {
-                            startBenchmarkExpanded.toggle() // Expand or collapse the section
-                        }
-                    }) {
-                        HStack {
-                            Text("Start a new benchmark")
-                                .font(.system(size: 18))
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            Spacer()
-                            Image(systemName: startBenchmarkExpanded ? "chevron.down" : "chevron.right")
-                                .foregroundColor(.white)
-                        }
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.teal, Color.blue]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        
-                    }
-
-                    if startBenchmarkExpanded {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack (alignment: .center){
-                                // Dropdown for selecting metric
-                                Text("Select a metric:")
-                                    .font(.system(size: 16))
+                    // Start a New Benchmark Section
+                    VStack(alignment: .leading, spacing: 0) {
+                        Button(action: {
+                            withAnimation {
+                                startBenchmarkExpanded.toggle() // Expand or collapse the section
+                            }
+                        }) {
+                            HStack {
+                                Text("Start a new benchmark")
+                                    .font(.system(size: 18))
+                                    .fontWeight(.bold)
                                     .foregroundColor(.white)
-                                
                                 Spacer()
-                                
-                                Picker("Select Metric", selection: $selectedMetric) {
-                                    ForEach(metrics) { metric in
-                                        Text(metric.name).tag(metric.id) // Use `metric.id` as the tag
-                                    }
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                                .padding(5)
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
+                                Image(systemName: startBenchmarkExpanded ? "chevron.down" : "chevron.right")
+                                    .foregroundColor(.white)
                             }
-                            .padding(.horizontal)
-                            
-                            // Perform Benchmark Button
-                            Button(action: {
-                                isLoading = true
-                                performBenchmark()
-                            }) {
-                                HStack {
-                                    if isLoading {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    }
-                                    Text(isLoading ? "Processing..." : "Perform Benchmark")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                }
-                                .background(Color.teal)
-                                .cornerRadius(8)
-                            }
-                        }
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.teal, Color.blue]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        
-                    }
-                }
-
-                // Previous Benchmarks Section
-                Text("Previous Benchmarks")
-                    .font(.system(size: 24))
-                    .fontWeight(.heavy)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top)
-                    
-
-                ScrollView {
-                    VStack(spacing: 16) {
-//                        NavigationLink(destination: BenchmarkDetailView(benchmark: exampleBenchmark)) {
-//                            BenchmarkCardView(
-//                                date: formattedDate(from: exampleBenchmark.createdAt),
-//                                title: dataTypeName(for: exampleBenchmark.dataTypeId),
-//                                value: String(format: "%.0f", exampleBenchmark.userDataValue),
-//                                icon: iconName(for: exampleBenchmark.dataTypeId),
-//                                color: color(for: exampleBenchmark.dataTypeId)
-//                            )
-//                            .buttonStyle(PlainButtonStyle())
-//                        }
-                        
-                        // Dynamic Benchmarks
-                        ForEach(benchmarks) { benchmark in
-                            NavigationLink(destination: BenchmarkDetailView(benchmark: benchmark)) {
-                                BenchmarkCardView(
-                                    date: formattedDate(from: benchmark.createdAt),
-                                    title: dataTypeName(for: benchmark.dataTypeId),
-                                    value: String(format: "%.0f", benchmark.userDataValue),
-                                    icon: iconName(for: benchmark.dataTypeId),
-                                    color: color(for: benchmark.dataTypeId)
+                            .padding()
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.teal, Color.blue]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
                                 )
+                            )
+                            
+                        }
+
+                        if startBenchmarkExpanded {
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack (alignment: .center){
+                                    // Dropdown for selecting metric
+                                    Text("Select a metric:")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                    
+                                    Spacer()
+                                    
+                                    Picker("Select Metric", selection: $selectedMetric) {
+                                        ForEach(metrics) { metric in
+                                            Text(metric.name).tag(metric.id) // Use `metric.id` as the tag
+                                        }
+                                    }
+                                    .pickerStyle(MenuPickerStyle())
+                                    .padding(5)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(8)
+                                }
+                                .padding(.horizontal)
+                                
+                                // Perform Benchmark Button
+                                Button(action: {
+                                    isLoading = true
+                                    performBenchmark()
+                                }) {
+                                    HStack {
+                                        if isLoading {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        }
+                                        Text(isLoading ? "Processing..." : "Perform Benchmark")
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                    }
+                                    .background(Color.teal)
+                                    .cornerRadius(8)
+                                }
                             }
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.teal, Color.blue]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            
                         }
                     }
-                    .padding(.top)
-                    .padding(.horizontal, 10)
-                    .onChange(of: shouldRefresh, { oldValue, newValue in
-                        if newValue {
-                            fetchBenchmarks()
-                            shouldRefresh = false // reset after refresh
-                        }
-                    })
 
+                    // Previous Benchmarks Section
+                    Text("Previous Benchmarks")
+                        .font(.system(size: 24))
+                        .fontWeight(.heavy)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top)
+                        
+                        VStack(spacing: 16) {
+                            // Dynamic Benchmarks
+                            ForEach(benchmarks) { benchmark in
+                                NavigationLink(destination: BenchmarkDetailView(benchmark: benchmark)) {
+                                    BenchmarkCardView(
+                                        date: formattedDate(from: benchmark.createdAt),
+                                        title: dataTypeName(for: benchmark.dataTypeId),
+                                        value: String(format: "%.0f", benchmark.userDataValue),
+                                        icon: iconName(for: benchmark.dataTypeId),
+                                        color: color(for: benchmark.dataTypeId)
+                                    )
+                                }
+                            }
+                        }
+                        .padding(.top)
+                        .padding(.horizontal, 10)
+                        .onChange(of: shouldRefresh, { oldValue, newValue in
+                            if newValue {
+                                fetchBenchmarks()
+                                shouldRefresh = false // reset after refresh
+                            }
+                        })
+
+                    
                 }
+                .onAppear {
+                    fetchBenchmarks()
+                }
+                .padding(.horizontal)
             }
-            .onAppear {
-                fetchBenchmarks()
-            }
-            .padding(.horizontal)
+            
         }
     }
     

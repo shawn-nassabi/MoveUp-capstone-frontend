@@ -17,6 +17,15 @@ class AppState: ObservableObject {
     @Published var clanMemberDetails: ClanMember?
     @Published var clanDetails: Clan?
     
+    @Published var healthGoals: [String: Int] = [
+        "steps": 10000,
+        "calories": 650,
+        "resting_heartrate": 60,
+        "sleep": 8,
+        "exercise_minutes": 30,
+        "distance": 5
+    ]
+    
     func refreshClanDetails() {
         print("Fetching clan details")
         

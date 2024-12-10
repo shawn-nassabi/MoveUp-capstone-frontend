@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ActivityOverviewView: View {
+    @EnvironmentObject var appState: AppState
+    
     @State private var steps: String = "--"
     @State private var calories: String = "--"
     @State private var sleepHours: String = "--"
@@ -29,12 +31,12 @@ struct ActivityOverviewView: View {
                 .padding(.bottom)
             
             LazyVGrid(columns: columns, spacing: 24) {
-                ActivityCardView(title: "Steps", value: steps, goal: "10,000", icon: "figure.walk.motion", color: .green)
-                ActivityCardView(title: "Calories", value: calories, goal: "650", icon: "flame.fill", color: .orange)
-                ActivityCardView(title: "Sleep", value: sleepHours, goal: "8h 30m", icon: "moon.fill", color: .indigo)
-                ActivityCardView(title: "Rest HR", value: restingHeartRate, goal: "54", icon: "heart.fill", color: .red)
-                ActivityCardView(title: "Exercise", value: exerciseMinutes, goal: "30", icon: "figure.run", color: .teal)
-                ActivityCardView(title: "Distance", value: distance, goal: "2 km", icon: "map", color: .brown)
+                ActivityCardView(title: "Steps", value: steps, goal: "\(appState.healthGoals["steps"] ?? 10000)", icon: "figure.walk.motion", color: .green)
+                ActivityCardView(title: "Calories", value: calories, goal: "\(appState.healthGoals["calories"] ?? 650) kcal", icon: "flame.fill", color: .orange)
+                ActivityCardView(title: "Sleep", value: sleepHours, goal: "\(appState.healthGoals["sleep"] ?? 7) hrs", icon: "moon.fill", color: .indigo)
+                ActivityCardView(title: "Rest HR", value: restingHeartRate, goal: "\(appState.healthGoals["resting_heartrate"] ?? 60) bpm", icon: "heart.fill", color: .red)
+                ActivityCardView(title: "Exercise", value: exerciseMinutes, goal: "\(appState.healthGoals["exercise_minutes"] ?? 30) min", icon: "figure.run", color: .teal)
+                ActivityCardView(title: "Distance", value: distance, goal: "\(appState.healthGoals["distance"] ?? 5) km", icon: "map", color: .brown)
             }
             .onAppear {
                 fetchData()
@@ -110,12 +112,12 @@ struct ActivityCardView: View {
                         .font(.system(size: 20))
                         .fontWeight(.bold)
                     Text("Goal: \(goal)")
-                        .font(.caption)
+                        .font(.system(size: 11))
                         .foregroundColor(.gray)
                 }
                 
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 5)
             
         }
         .padding(.vertical, 10)

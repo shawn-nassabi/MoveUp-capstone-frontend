@@ -15,52 +15,73 @@ struct ProfileView: View {
     let gender = "Male"
 
     var body: some View {
-        VStack(spacing: 20) {
-            // Profile Picture
-            ZStack {
-                Circle()
-                    .fill(Color.gray.opacity(0.3)) // Background for the placeholder
-                    .frame(width: 120, height: 120)
+        NavigationView {
+            VStack(spacing: 20) {
+                // Profile Picture
+                ZStack {
+                    Circle()
+                        .fill(Color.gray.opacity(0.3)) // Background for the placeholder
+                        .frame(width: 120, height: 120)
 
-                Image(systemName: "person.fill") // Placeholder icon
-                    .font(.system(size: 60))
-                    .foregroundColor(.gray)
+                    Image(systemName: "person.fill") // Placeholder icon
+                        .font(.system(size: 60))
+                        .foregroundColor(.gray)
+                }
+                .padding(.top, 40) // Adds spacing from the top
+
+                // User Details
+                VStack(spacing: 10) {
+                    Text(username)
+                        .font(.title)
+                        .fontWeight(.bold)
+
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.gray)
+                        Text("Age: \(age)")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+
+                    HStack {
+                        Image(systemName: "mappin.and.ellipse")
+                            .foregroundColor(.gray)
+                        Text("Location: \(location)")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+
+                    HStack {
+                        Image(systemName: "person.2")
+                            .foregroundColor(.gray)
+                        Text("Gender: \(gender)")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                
+                NavigationLink(destination: EditGoalsView()) {
+                    Text("Edit Goals")
+                        .font(.system(size: 16))
+                        .fontWeight(.bold)
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .foregroundColor(.primary)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(10)
+                        .padding(.top)
+                }
+
+                Spacer() // Pushes everything to the top
             }
-            .padding(.top, 40) // Adds spacing from the top
-
-            // User Details
-            VStack(spacing: 10) {
-                Text(username)
-                    .font(.title)
-                    .fontWeight(.bold)
-
-                HStack {
-                    Image(systemName: "calendar")
-                        .foregroundColor(.gray)
-                    Text("Age: \(age)")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-
-                HStack {
-                    Image(systemName: "mappin.and.ellipse")
-                        .foregroundColor(.gray)
-                    Text("Location: \(location)")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-
-                HStack {
-                    Image(systemName: "person.2")
-                        .foregroundColor(.gray)
-                    Text("Gender: \(gender)")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-            }
-
-            Spacer() // Pushes everything to the top
+            .padding()
+            .padding(.horizontal, 10)
         }
-        .padding()
     }
+}
+
+
+#Preview {
+    ProfileView()
+        .environmentObject(AppState())
 }
