@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct QuickInsightsView: View {
+    @StateObject private var viewModel = QuickInsightsViewModel()
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Quick Insights")
@@ -16,8 +18,8 @@ struct QuickInsightsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom)
             
-            InsightCardView(text: "Your resting heart rate has improved by 5 bpm over the past month. Keep up the good work!", isPositive: true)
-            InsightCardView(text: "You haven’t hit your sleep goal in over a month. Let’s try to change that tonight.", isPositive: false)
+            InsightCardView(text: viewModel.insightText, isPositive: viewModel.isPositive)
+            InsightCardView(text: viewModel.calorieInsightText, isPositive: viewModel.calorieIsPositive)
         }
         .padding(.top)
     }
