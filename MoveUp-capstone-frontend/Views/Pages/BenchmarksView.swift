@@ -163,6 +163,13 @@ struct BenchmarksView: View {
                 }
                 .padding(.horizontal)
             }
+            .navigationBarItems(leading:
+                NavigationLink(destination: BenchmarkInfoView()) {
+                    Image(systemName: "info.circle")
+                        .imageScale(.large)
+                        .foregroundColor(.blue)
+                }
+            )
             
         }
     }
@@ -205,7 +212,7 @@ struct BenchmarksView: View {
                     "locationId": locationId
                 ]
 
-                guard let url = URL(string: "http://10.228.227.249:5085/api/demographicbenchmark"),
+                guard let url = URL(string: "\(API.baseURL)/api/demographicbenchmark"),
                       let httpBody = try? JSONSerialization.data(withJSONObject: requestBody) else {
                     print("Invalid URL or request body.")
                     return
@@ -258,7 +265,7 @@ struct BenchmarksView: View {
             return
         }
 
-        guard let url = URL(string: "http://10.228.227.249:5085/api/demographicbenchmark/\(userId)") else {
+        guard let url = URL(string: "\(API.baseURL)/api/demographicbenchmark/\(userId)") else {
             print("Invalid URL")
             return
         }
@@ -414,6 +421,32 @@ struct BenchmarkCardView: View {
     }
 }
 
+
+struct BenchmarkInfoView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("What are Benchmarks?")
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                Text("Benchmarks are a way to see how your health metrics compare to other users of the application within the same demographic over the last week. You can see how your stats align with others in your age group, gender, and location.")
+                
+                Text("Each benchmark includes:")
+                    .font(.headline)
+                Text("- Your average value for the selected metric\n- The average for users in your demographic\n- A recommended value to strive for")
+
+                Text("You can conduct a benchmark for any of the six health metrics:")
+                    .font(.headline)
+                Text("• Steps\n• Calories\n• Resting Heartrate\n• Sleep\n• Exercise Minutes\n• Distance Travelled")
+
+                Spacer()
+            }
+            .padding()
+        }
+        .navigationTitle("Benchmark Info")
+    }
+}
 
 #Preview {
     BenchmarksView()

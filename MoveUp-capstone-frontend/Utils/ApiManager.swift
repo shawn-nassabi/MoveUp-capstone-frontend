@@ -21,8 +21,65 @@ class ApiManager {
     
     private init() {} // Singleton pattern
     
+    func fetchUserPoints(userAddress: String, completion: @escaping (Int?) -> Void) {
+        guard let url = URL(string: "\(API.baseURL)/api/blockchain/points/\(userAddress)") else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let data = data {
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let pointsStr = json["points"] as? String,
+                   let points = Int(pointsStr) {
+                    completion(points)
+                    return
+                }
+            }
+            completion(nil)
+        }.resume()
+    }
+
+    func fetchTokenBalance(userAddress: String, completion: @escaping (Double?) -> Void) {
+        guard let url = URL(string: "\(API.baseURL)/api/blockchain/token-balance/\(userAddress)") else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let data = data {
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let balanceStr = json["balance"] as? String,
+                   let balance = Double(balanceStr) {
+                    completion(balance)
+                    return
+                }
+            }
+            completion(nil)
+        }.resume()
+    }
+
+    func fetchPointsPerTokenRate(completion: @escaping (Int?) -> Void) {
+        guard let url = URL(string: "\(API.baseURL)/api/blockchain/points-per-token") else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let data = data {
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let rateStr = json["pointsPerToken"] as? String,
+                   let rate = Int(rateStr) {
+                    completion(rate)
+                    return
+                }
+            }
+            completion(nil)
+        }.resume()
+    }
+    
     func uploadHealthData(payload: HealthDataPayload, completion: @escaping (Bool, Error?) -> Void) {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/healthdata") else {
+        guard let url = URL(string: "\(API.baseURL)/api/healthdata") else {
             completion(false, NSError(domain: "Invalid URL", code: -1, userInfo: nil))
             return
         }

@@ -17,6 +17,11 @@ class AppState: ObservableObject {
     @Published var clanMemberDetails: ClanMember?
     @Published var clanDetails: Clan?
     
+    // The following are variables for blockchain related data
+    @Published var userPoints: Int? = nil
+    @Published var userTokenBalance: Double? = nil
+    @Published var pointsPerToken: Int? = nil
+    
     @Published var healthGoals: [String: Int] = [
         "steps": 10000,
         "calories": 650,
@@ -25,6 +30,84 @@ class AppState: ObservableObject {
         "exercise_minutes": 30,
         "distance": 5
     ]
+    
+    func fetchBlockchainData() {
+        guard let userId = userId else { return }
+
+        fetchUserPoints(userAddress: userId)
+        fetchTokenBalance(userAddress: userId)
+        fetchPointsPerTokenRate()
+    }
+    
+    func fetchUserPoints(userAddress: String) {
+        ApiManager.shared.fetchUserPoints(userAddress: userAddress) { points in
+            DispatchQueue.main.async {
+                self.userPoints = points
+                print("Points: \(String(describing: self.userPoints))")
+            }
+        }
+    }
+
+    func fetchTokenBalance(userAddress: String) {
+        ApiManager.shared.fetchTokenBalance(userAddress: userAddress) { balance in
+            DispatchQueue.main.async {
+                self.userTokenBalance = balance
+                print("Token Balance: \(String(describing: self.userTokenBalance))")
+            }
+        }
+    }
+
+    func fetchPointsPerTokenRate() {
+        ApiManager.shared.fetchPointsPerTokenRate { rate in
+            DispatchQueue.main.async {
+                self.pointsPerToken = rate
+                print("Points per Token: \(String(describing: self.pointsPerToken))")
+            }
+        }
+    }
+    
+    func convertPointsToTokens(completion: @escaping (Bool, String) -> Void) {
+        guard let userId = userId else {
+            completion(false, "User ID not available.")
+            return
+        }
+
+        guard let url = URL(string: "\(API.baseURL)/api/blockchain/convert-points-to-tokens") else {
+            completion(false, "Invalid URL.")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload = ["userId": userId]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload, options: [])
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, "Request failed: \(error.localizedDescription)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(false, "No response from server.")
+                return
+            }
+
+            if httpResponse.statusCode == 200 {
+                completion(true, "✅ Points converted to tokens successfully!")
+            } else {
+                if let data = data,
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let message = json["message"] as? String {
+                    completion(false, message)
+                } else {
+                    completion(false, "❌ Conversion failed with status code \(httpResponse.statusCode)")
+                }
+            }
+        }.resume()
+    }
     
     func refreshClanDetails() {
         print("Fetching clan details")
@@ -37,7 +120,7 @@ class AppState: ObservableObject {
             return
         }
 
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/member/\(userId)") else {
+        guard let url = URL(string: "\(API.baseURL)/api/clan/member/\(userId)") else {
             print("Invalid URL")
             isLoadingClanDetails = false
             return
@@ -100,7 +183,7 @@ class AppState: ObservableObject {
             self.isLoadingClanDetails = false
         }
 
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)") else {
+        guard let url = URL(string: "\(API.baseURL)/api/clan/\(clanId)") else {
             print("Invalid URL")
             return
         }
@@ -143,7 +226,7 @@ class AppState: ObservableObject {
     
     // Fetch user data from the backend API
     func fetchUserData() {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/user/6dfa161b-9a4f-4857-b82a-2125e99e8331") else {
+        guard let url = URL(string: "\(API.baseURL)/api/user/6dfa161b-9a4f-4857-b82a-2125e99e8331") else {
             print("Invalid URL")
             return
         }
@@ -178,7 +261,7 @@ class AppState: ObservableObject {
     // Fetch health data types from backend
     func fetchHealthDataTypes() {
         print("Inside fetching health data types")
-        guard let url = URL(string: "http://10.228.227.249:5085/api/datatype") else {
+        guard let url = URL(string: "\(API.baseURL)/api/datatype") else {
             print("Invalid URL")
             return
         }
@@ -320,5 +403,7 @@ class AppState: ObservableObject {
                 }
             }
         }
+    
+    
     
 }

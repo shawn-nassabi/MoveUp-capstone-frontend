@@ -140,7 +140,7 @@ struct CreateChallengeView: View {
         isLoading = true
         errorMessage = nil
 
-        let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)/challenge")! 
+        let url = URL(string: "\(API.baseURL)/api/clan/\(clanId)/challenge")! 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")

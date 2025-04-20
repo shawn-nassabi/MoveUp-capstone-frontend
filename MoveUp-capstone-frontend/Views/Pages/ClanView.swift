@@ -13,7 +13,7 @@ class ClanInviteSheetManager: ObservableObject {
     @Published var isLoading: Bool = false // Tracks loading state for join requests
 
     func fetchJoinRequests(for clanId: String) {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)/invites") else {
+        guard let url = URL(string: "\(API.baseURL)/api/clan/\(clanId)/invites") else {
             print("Invalid URL")
             return
         }
@@ -44,7 +44,7 @@ class ClanInviteSheetManager: ObservableObject {
     }
     
     func acceptRequest(requestId: String) {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/invite/accept/\(requestId)") else {
+        guard let url = URL(string: "\(API.baseURL)/api/clan/invite/accept/\(requestId)") else {
             print("Invalid URL")
             return
         }
@@ -69,7 +69,7 @@ class ClanInviteSheetManager: ObservableObject {
     }
 
     func declineRequest(requestId: String) {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/invite/decline/\(requestId)") else {
+        guard let url = URL(string: "\(API.baseURL)/api/clan/invite/decline/\(requestId)") else {
             print("Invalid URL")
             return
         }
@@ -239,7 +239,7 @@ struct ClanView: View {
             return
         }
 
-        let url = URL(string: "http://10.228.227.249:5085/api/clan/member/\(userId)")!
+        let url = URL(string: "\(API.baseURL)/api/clan/member/\(userId)")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
 
@@ -492,7 +492,7 @@ struct ClanView: View {
             return
         }
 
-        let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)/leave/\(userId)")! // Update with your actual endpoint
+        let url = URL(string: "\(API.baseURL)/api/clan/\(clanId)/leave/\(userId)")! // Update with your actual endpoint
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")

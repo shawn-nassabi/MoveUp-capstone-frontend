@@ -82,7 +82,7 @@ struct ClanChallengesView: View {
     }
 
     func fetchChallenges() {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)/challenges") else {
+        guard let url = URL(string: "\(API.baseURL)/api/clan/\(clanId)/challenges") else {
             errorMessage = "Invalid URL"
             isLoading = false
             return

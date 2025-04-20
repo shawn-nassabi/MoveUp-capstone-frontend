@@ -93,7 +93,7 @@ struct SearchClansView: View {
     }
     
     func fetchClanDetails(clanId: String) {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clanId)") else { return }
+        guard let url = URL(string: "\(API.baseURL)/api/clan/\(clanId)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
@@ -118,7 +118,7 @@ struct SearchClansView: View {
 
     // Fetch clans from backend
     func fetchClans() {
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan") else { return }
+        guard let url = URL(string: "\(API.baseURL)/api/clan") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {

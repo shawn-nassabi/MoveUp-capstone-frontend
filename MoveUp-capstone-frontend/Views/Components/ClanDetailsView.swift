@@ -151,7 +151,7 @@ struct ClanDetailsView: View {
             return
         }
         
-        guard let url = URL(string: "http://10.228.227.249:5085/api/clan/\(clan.id)/invite/\(userId)") else {
+        guard let url = URL(string: "\(API.baseURL)/api/clan/\(clan.id)/invite/\(userId)") else {
             alertTitle = "Error"
             alertMessage = "Invalid server URL."
             showAlert = true
