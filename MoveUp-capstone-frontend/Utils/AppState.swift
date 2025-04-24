@@ -4,12 +4,18 @@
 //
 //  Created by Shawn Nassabi on 12/4/24.
 //
+// 0229c018-c8e4-4321-86e0-1c1f1ee3b4bc - user38
+// 6dfa161b-9a4f-4857-b82a-2125e99e8331 - shawn
 
 import SwiftUI
 import Combine
 
 class AppState: ObservableObject {
-    @Published var userId: String? = "6dfa161b-9a4f-4857-b82a-2125e99e8331"
+//    @Published var userId: String? = "0a2b3ac1-2a55-4151-9fd1-92d654e7940d"
+    // Persisted keys in UserDefaults:
+    @AppStorage("userId", store: .standard) var userId: String?
+    @AppStorage("walletAddress", store: .standard) var walletAddress: String?
+    
     @Published var userData: [String: Any]? = nil
     @Published var healthDataTypes: [[String: Any]]? = nil
     
@@ -22,6 +28,9 @@ class AppState: ObservableObject {
     @Published var userTokenBalance: Double? = nil
     @Published var pointsPerToken: Int? = nil
     
+    @Published var pointsHistory: [PointsRewardHistoryDto] = []
+    @Published var tokenHistory:  [TokenRewardHistoryDto]  = []
+    
     @Published var healthGoals: [String: Int] = [
         "steps": 10000,
         "calories": 650,
@@ -30,6 +39,58 @@ class AppState: ObservableObject {
         "exercise_minutes": 30,
         "distance": 5
     ]
+    
+    init() {
+            // If we already have a userId in AppStorage,
+            // immediately fetch everything we need:
+            if let uid = userId, let wallet = walletAddress {
+                // load profile, blockchain info, etc.
+                fetchUserData()
+                fetchBlockchainData()
+            }
+        }
+    
+    // Persist and store login related/session data ----------------------------------
+    func saveSession(userId: String, wallet: String) {
+        // Just assign—@AppStorage writes automatically
+        self.userId        = userId
+        self.walletAddress = wallet
+        // And pull in the data you’ll want on first launch:
+        fetchUserData()
+        fetchBlockchainData()
+        refreshClanDetails()
+    }
+
+    func clearSession() {
+        // Wipe out saved defaults and in-memory:
+        userId        = nil
+        walletAddress = nil
+        userData      = nil
+        clanMemberDetails = nil     // ← clear leftover clan cache
+        clanDetails        = nil
+        pointsHistory = []
+        tokenHistory  = []
+        // clear any other state as needed…
+    }
+
+    func loadSession() {
+        if let uid = UserDefaults.standard.string(forKey: "userId"),
+           let wal = UserDefaults.standard.string(forKey: "walletAddress") {
+            self.userId = uid
+            self.walletAddress = wal
+            fetchUserData()
+            fetchBlockchainData()
+        }
+    }
+
+//    func clearSession() {
+//        UserDefaults.standard.removeObject(forKey: "userId")
+//        UserDefaults.standard.removeObject(forKey: "walletAddress")
+//        self.userId = nil
+//        self.walletAddress = nil
+//    }
+    
+    // ----------------------------------------------------------------------------------
     
     func fetchBlockchainData() {
         guard let userId = userId else { return }
@@ -65,6 +126,24 @@ class AppState: ObservableObject {
             }
         }
     }
+    
+    func fetchPointsHistory() {
+        guard let userId = userId else { return }
+        ApiManager.shared.fetchPointsHistory(userAddress: userId) { list, err in
+          DispatchQueue.main.async {
+            self.pointsHistory = list ?? []
+          }
+        }
+      }
+
+      func fetchTokenHistory() {
+        guard let userId = userId else { return }
+        ApiManager.shared.fetchTokenHistory(userAddress: userId) { list, err in
+          DispatchQueue.main.async {
+            self.tokenHistory = list ?? []
+          }
+        }
+      }
     
     func convertPointsToTokens(completion: @escaping (Bool, String) -> Void) {
         guard let userId = userId else {
@@ -226,7 +305,7 @@ class AppState: ObservableObject {
     
     // Fetch user data from the backend API
     func fetchUserData() {
-        guard let url = URL(string: "\(API.baseURL)/api/user/6dfa161b-9a4f-4857-b82a-2125e99e8331") else {
+        guard let url = URL(string: "\(API.baseURL)/api/user/\(userId ?? "")") else {
             print("Invalid URL")
             return
         }

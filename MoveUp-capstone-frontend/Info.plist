@@ -8,5 +8,10 @@
 	<array>
 		<string>Pacifico-Regular.ttf</string>
 	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIImageName</key>
+		<string>launch-image</string>
+	</dict>
 </dict>
 </plist>

@@ -6,9 +6,10 @@
 //
 
 // Constants.swift
+// http://10.228.238.224:5085 regular local backend
 
 import Foundation
 
 struct API {
-    static let baseURL = "http://192.168.1.212:5085" // Replace with your backend IP
+    static let baseURL = "https://moveup-capstone.duckdns.org" // Replace with your backend IP
 }

@@ -12,6 +12,7 @@ struct MoveUp_capstone_frontendApp: App {
     @StateObject private var appState = AppState() // Single instance of global state
     
     init() {
+//        appState.loadSession()
         HealthKitManager.shared.requestAuthorization { success, error in
             if let error = error {
                 print("HealthKit authorization failed: \(error.localizedDescription)")
@@ -27,11 +28,7 @@ struct MoveUp_capstone_frontendApp: App {
                 .environmentObject(appState) // Inject AppState
                 .onAppear {
                     appState.fetchUserData()
-                }
-                .onAppear {
                     appState.fetchHealthDataTypes()
-                }
-                .onAppear {
                     appState.uploadHealthDataOnStartup()
                 }
         }

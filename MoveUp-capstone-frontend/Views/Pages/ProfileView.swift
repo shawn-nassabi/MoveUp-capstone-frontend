@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showMessage = false
     @State private var conversionMessage = ""
     @State private var isSuccess = true
+    @State private var showingHistory = false
     
     // Placeholder user details (you can replace these with dynamic data later)
     let username = "shawn_nassabi"
@@ -58,30 +59,34 @@ struct ProfileView: View {
 
                     // User Details
                     VStack(spacing: 10) {
-                        Text(username)
+                        // Username
+                        Text(appState.userData?["username"] as? String ?? username)
                             .font(.title)
                             .fontWeight(.bold)
 
+                        // Age
                         HStack {
                             Image(systemName: "calendar")
                                 .foregroundColor(.gray)
-                            Text("Age: \(age)")
+                            Text("Age: \(appState.userData?["age"] as? Int ?? age)")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
 
+                        // Location
                         HStack {
                             Image(systemName: "mappin.and.ellipse")
                                 .foregroundColor(.gray)
-                            Text("Location: \(location)")
+                            Text("Location: \(appState.userData?["location"] as? String ?? location)")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
 
+                        // Gender
                         HStack {
                             Image(systemName: "person.2")
                                 .foregroundColor(.gray)
-                            Text("Gender: \(gender)")
+                            Text("Gender: \(appState.userData?["gender"] as? String ?? gender)")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
@@ -102,7 +107,7 @@ struct ProfileView: View {
                             }
 
                             HStack {
-                                Text("Points per Token:")
+                                Text("Points per Token conversion rate:")
                                 Spacer()
                                 Text("\(appState.pointsPerToken ?? 0)")
                             }
@@ -141,6 +146,17 @@ struct ProfileView: View {
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(10)
+                        
+                        Button {
+                          showingHistory = true
+                        } label: {
+                          Label("History", systemImage: "clock.arrow.circlepath")
+                        }
+                        .sheet(isPresented: $showingHistory) {
+                          NavigationView {
+                            RewardHistoryView()
+                          }
+                        }
                     }
                     
                     Text("On this page you can view your profile details, edit your goals, and see your blockchain wallet info. Each day at 3:00 UTC your contributions are synced on-chain and you earn points; if you have enough points, you can convert them into HDT tokens.")
@@ -149,6 +165,19 @@ struct ProfileView: View {
                         .multilineTextAlignment(.center)
                         .padding(.top, 16)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    // Log Out button
+                    Button(action: {
+                        appState.clearSession()
+                    }) {
+                        Text("Log Out")
+                            .foregroundColor(.red)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(10)
+                    }
+                    .padding(.top, 10)
 
                     Spacer() // Pushes everything to the top
                 }

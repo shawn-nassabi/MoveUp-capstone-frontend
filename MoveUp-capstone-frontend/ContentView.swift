@@ -10,34 +10,33 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
     
-    var body: some View { // 'some View' tells SwiftUI that the body must return one or more SwiftUI views
-        TabView {
-            DashboardView() // Tab 1: Main Dashboard
-                .tabItem {
-                    Image(systemName: "house") // Home icon
-                    Text("Home")
-                }
-                    
-            BenchmarksView() // Tab 2: Achievements/Goals
-                .tabItem {
-                    Image(systemName: "flag.checkered") // Flag icon
-                    Text("Benchmarks")
-                }
-                    
-            ClanView() // Tab 3: Friends/Social
-                .tabItem {
-                    Image(systemName: "person.3") // Friends icon
-                    Text("Clan")
-                }
-                    
-            ProfileView() // Tab 4: Profile/Settings
-                .tabItem {
-                    Image(systemName: "person.crop.circle") // Profile icon
-                    Text("Profile")
-                }
+    var body: some View {
+        Group {
+            if appState.userId == nil {
+                LoginView()
+            } else {
+                MainTabView()
+            }
         }
-        
-        
+        .animation(.default, value: appState.userId)
+    }
+}
+
+struct MainTabView: View {
+    var body: some View {
+        TabView {
+            DashboardView()
+                .tabItem { Image(systemName: "house"); Text("Home") }
+
+            BenchmarksView()
+                .tabItem { Image(systemName: "flag.checkered"); Text("Benchmarks") }
+
+            ClanView()
+                .tabItem { Image(systemName: "person.3"); Text("Clan") }
+
+            ProfileView()
+                .tabItem { Image(systemName: "person.crop.circle"); Text("Profile") }
+        }
     }
 }
 
